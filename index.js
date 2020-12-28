@@ -68,24 +68,19 @@ ChunshandWebpackOssPlugin.getBuffer = async function (name) {
 // 版本控制 删除文件
 ChunshandWebpackOssPlugin.deletePrefixObject = async function (prefixStr) {
 	async function handleDel(name) {
-		try {
-			await ChunshandWebpackOssPlugin.prototype.client.delete(name);
-		} catch (error) {
-			error.failObjectName = name;
-			return error;
-		}
+		return await ChunshandWebpackOssPlugin.prototype.client.delete(name);
 	}
 
 	// 删除指定前缀的文件。
 	async function deletePrefix(prefix) {
 		const list = await ChunshandWebpackOssPlugin.prototype.client.list({
-			prefix: prefix,
-			delimiter: '/',
+			prefix: prefix
 		});
 		list.objects = list.objects || [];
-		await Promise.all(list.objects.map((v) => handleDel(v.name)));
+		let all = list.objects.map((v) => handleDel(v.name));
+		return await Promise.all(all);
 	}
-	deletePrefix(prefixStr)
+	return deletePrefix(prefixStr)
 }
 // 获取版本配置文件
 ChunshandWebpackOssPlugin.getVjson = async function (callback) {
@@ -114,8 +109,10 @@ ChunshandWebpackOssPlugin.getVjson = async function (callback) {
 			})
 			// 删除第一个
 			let v = vdata.shift();
-			this.deletePrefixObject(v.path);
-			if (vdata.map((i) => i.versionCode).filter((i) => i.versionCode == current)) {
+			await this.deletePrefixObject(v.path + '/');
+			let isc = vdata.map((i) => i.versionCode).find((i) => i == current.versionCode);
+			console.log(isc);
+			if (isc) {
 				callback(false);
 				return;
 
@@ -124,7 +121,8 @@ ChunshandWebpackOssPlugin.getVjson = async function (callback) {
 
 
 		} else {
-			if (vdata.map((i) => i.versionCode).filter((i) => i.versionCode == current)) {
+			let isc = vdata.map((i) => i.versionCode).find((i) => i == current.versionCode);
+			if (isc) {
 				callback(false);
 				return;
 			}
