@@ -24,7 +24,7 @@ let DEFAULT_OPTIONS = {
 	// 失败重试次数
 	retry: 3,
 	// 过滤方法 接受的 file参数
-	filter: function (file) {
+	filter: function () {
 		return true;
 	},
 	// 路径
@@ -38,7 +38,8 @@ let DEFAULT_OPTIONS = {
 };
 
 function log(a, b) {
-	console.log(`[${PluginName}] ` + a, b);
+	// eslint-disable-next-line no-console
+	console.log(`[${PluginName}] ${a}`, b);
 }
 // 版本控制 检测文件是否存在
 ChunshandWebpackOssPlugin.isExistObject = async function (name, options = {}) {
@@ -66,7 +67,7 @@ ChunshandWebpackOssPlugin.getBuffer = async function (name) {
 }
 // 版本控制 删除文件
 ChunshandWebpackOssPlugin.deletePrefixObject = async function (prefixStr) {
-	async function handleDel(name, options) {
+	async function handleDel(name) {
 		try {
 			await ChunshandWebpackOssPlugin.prototype.client.delete(name);
 		} catch (error) {
@@ -88,7 +89,7 @@ ChunshandWebpackOssPlugin.deletePrefixObject = async function (prefixStr) {
 }
 // 获取版本配置文件
 ChunshandWebpackOssPlugin.getVjson = async function (callback) {
-	path = '/' + this.newOptions.offset + 'oss.v.json';
+	let path = '/' + this.newOptions.offset + 'oss.v.json';
 	let bool = await this.isExistObject(path);
 	let vdata = [];
 	let current = {
@@ -176,7 +177,7 @@ ChunshandWebpackOssPlugin.getConfig = function (options) {
  * @param {object} options webpack配置
  */
 function ChunshandWebpackOssPlugin(options) {
-	this.newOpstion = ChunshandWebpackOssPlugin.getConfig(options);
+	let newOpstion = this.newOpstion = ChunshandWebpackOssPlugin.getConfig(options);
 	let conf = newOpstion.accountConfig[newOpstion.account];
 	ChunshandWebpackOssPlugin.prototype.client = this.client = new OSS({
 		region: conf.region,
@@ -196,7 +197,7 @@ ChunshandWebpackOssPlugin.prototype.apply = function (compiler) {
 			return callback(new Error('Webpack配置文件中: "output.publicPath"必须设置为域名，设置为：远端域名 具体可看阿里云oss后台设置'));
 		}
 		// 文件列表
-		let files = u.filter(u.keys(compilation.assets), that.options.filter);
+		let files = _.filter(_.keys(compilation.assets), that.options.filter);
 
 		if (files.length === 0) {
 			// 没有资源文件需要上传
@@ -243,7 +244,7 @@ ChunshandWebpackOssPlugin.prototype.apply = function (compiler) {
 		}
 		if (that.newOpstion.version && that.newOpstion.versionCode) {
 			// 检测以往脚本
-			ChunshandWebpackOssPlugin.getVjson(function (vdata) {
+			ChunshandWebpackOssPlugin.getVjson(function () {
 				update_run();
 			})
 		} else {

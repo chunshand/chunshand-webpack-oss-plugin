@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/chunshand/chunshand-webpack-oss-plugin#readme",
   "dependencies": {
-    "ali-oss": "^6.12.0"
+    "ali-oss": "^6.12.0",
+    "lodash": "^4.17.20"
   }
 }
