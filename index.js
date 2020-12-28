@@ -2,7 +2,7 @@
  * webpack 阿里云上传文件
  * 
  */
-const PluginName = 'chunshandWebpackOssPlugin';
+const PluginName = 'ChunshandWebpackOssPlugin';
 let url = require('url');
 let OSS = require('ali-oss');
 const _ = require("lodash");
@@ -41,10 +41,10 @@ function log(a, b) {
 	console.log(`[${PluginName}] ` + a, b);
 }
 // 版本控制 检测文件是否存在
-chunshandWebpackOssPlugin.isExistObject = async function (name, options = {}) {
+ChunshandWebpackOssPlugin.isExistObject = async function (name, options = {}) {
 	let bool = false;
 	try {
-		await chunshandWebpackOssPlugin.prototype.client.head(name, options);
+		await ChunshandWebpackOssPlugin.prototype.client.head(name, options);
 		bool = true;
 	} catch (error) {
 		if (error.code === 'NoSuchKey') {
@@ -54,10 +54,10 @@ chunshandWebpackOssPlugin.isExistObject = async function (name, options = {}) {
 	return bool;
 }
 // 版本控制
-chunshandWebpackOssPlugin.getBuffer = async function (name) {
+ChunshandWebpackOssPlugin.getBuffer = async function (name) {
 	let data = null;
 	try {
-		let result = await chunshandWebpackOssPlugin.prototype.client.get(name);
+		let result = await ChunshandWebpackOssPlugin.prototype.client.get(name);
 		data = result.content;
 	} catch (e) {
 		data = null;
@@ -65,10 +65,10 @@ chunshandWebpackOssPlugin.getBuffer = async function (name) {
 	return data;
 }
 // 版本控制 删除文件
-chunshandWebpackOssPlugin.deletePrefixObject = async function (prefixStr) {
+ChunshandWebpackOssPlugin.deletePrefixObject = async function (prefixStr) {
 	async function handleDel(name, options) {
 		try {
-			await chunshandWebpackOssPlugin.prototype.client.delete(name);
+			await ChunshandWebpackOssPlugin.prototype.client.delete(name);
 		} catch (error) {
 			error.failObjectName = name;
 			return error;
@@ -77,7 +77,7 @@ chunshandWebpackOssPlugin.deletePrefixObject = async function (prefixStr) {
 
 	// 删除指定前缀的文件。
 	async function deletePrefix(prefix) {
-		const list = await chunshandWebpackOssPlugin.prototype.client.list({
+		const list = await ChunshandWebpackOssPlugin.prototype.client.list({
 			prefix: prefix,
 			delimiter: '/',
 		});
@@ -87,7 +87,7 @@ chunshandWebpackOssPlugin.deletePrefixObject = async function (prefixStr) {
 	deletePrefix(prefixStr)
 }
 // 获取版本配置文件
-chunshandWebpackOssPlugin.getVjson = async function (callback) {
+ChunshandWebpackOssPlugin.getVjson = async function (callback) {
 	path = '/' + this.newOptions.offset + 'oss.v.json';
 	let bool = await this.isExistObject(path);
 	let vdata = [];
@@ -137,11 +137,11 @@ chunshandWebpackOssPlugin.getVjson = async function (callback) {
  * @param {string} path 
  * @param {array} vdata 
  */
-chunshandWebpackOssPlugin.setVjson = function (path, vdata) {
+ChunshandWebpackOssPlugin.setVjson = function (path, vdata) {
 	vdata = JSON.stringify(vdata);
 	let body = Buffer.isBuffer(vdata) ? vdata : Buffer.from(vdata);
 	new Promise(() => {
-		chunshandWebpackOssPlugin.prototype.client.put(path, body, {
+		ChunshandWebpackOssPlugin.prototype.client.put(path, body, {
 			timeout: 30 * 1000
 		}).then(function () {
 			log('[SUCCESS]', path);
@@ -152,7 +152,7 @@ chunshandWebpackOssPlugin.setVjson = function (path, vdata) {
 	})
 }
 // 版本控制
-chunshandWebpackOssPlugin.getConfig = function (options) {
+ChunshandWebpackOssPlugin.getConfig = function (options) {
 	this.newOptions = _.merge(DEFAULT_OPTIONS, options);
 	let conf = this.conf = this.newOptions.accountConfig[this.newOptions.account];
 	let region = conf.region;
@@ -175,10 +175,10 @@ chunshandWebpackOssPlugin.getConfig = function (options) {
  * 初始化
  * @param {object} options webpack配置
  */
-function chunshandWebpackOssPlugin(options) {
-	this.newOpstion = chunshandWebpackOssPlugin.getConfig(options);
+function ChunshandWebpackOssPlugin(options) {
+	this.newOpstion = ChunshandWebpackOssPlugin.getConfig(options);
 	let conf = newOpstion.accountConfig[newOpstion.account];
-	chunshandWebpackOssPlugin.prototype.client = this.client = new OSS({
+	ChunshandWebpackOssPlugin.prototype.client = this.client = new OSS({
 		region: conf.region,
 		accessKeyId: conf.accessKeyId,
 		accessKeySecret: conf.accessKeySecret
@@ -186,7 +186,7 @@ function chunshandWebpackOssPlugin(options) {
 	this.client.useBucket(conf.bucket);
 }
 
-chunshandWebpackOssPlugin.prototype.apply = function (compiler) {
+ChunshandWebpackOssPlugin.prototype.apply = function (compiler) {
 	let that = this;
 	compiler.hooks.emit.tapAsync(PluginName, function (compilation, callback) {
 		// publicPath
@@ -243,7 +243,7 @@ chunshandWebpackOssPlugin.prototype.apply = function (compiler) {
 		}
 		if (that.newOpstion.version && that.newOpstion.versionCode) {
 			// 检测以往脚本
-			chunshandWebpackOssPlugin.getVjson(function (vdata) {
+			ChunshandWebpackOssPlugin.getVjson(function (vdata) {
 				update_run();
 			})
 		} else {
@@ -252,5 +252,5 @@ chunshandWebpackOssPlugin.prototype.apply = function (compiler) {
 	});
 };
 
-module.exports = chunshandWebpackOssPlugin;
+module.exports = ChunshandWebpackOssPlugin;
 
