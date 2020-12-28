@@ -115,10 +115,19 @@ ChunshandWebpackOssPlugin.getVjson = async function (callback) {
 			// 删除第一个
 			let v = vdata.shift();
 			this.deletePrefixObject(v.path);
+			if (vdata.map((i) => i.versionCode).filter((i) => i.versionCode == current)) {
+				callback(false);
+				return;
+
+			}
 			vdata.push(current);
 
 
 		} else {
+			if (vdata.map((i) => i.versionCode).filter((i) => i.versionCode == current)) {
+				callback(false);
+				return;
+			}
 			vdata.push(current);
 		}
 
@@ -177,8 +186,8 @@ ChunshandWebpackOssPlugin.getConfig = function (options) {
  * @param {object} options webpack配置
  */
 function ChunshandWebpackOssPlugin(options) {
-	let newOpstion = this.newOpstion = ChunshandWebpackOssPlugin.getConfig(options);
-	let conf = newOpstion.accountConfig[newOpstion.account];
+	let newOptions = this.newOptions = ChunshandWebpackOssPlugin.getConfig(options);
+	let conf = newOptions.accountConfig[newOptions.account];
 	ChunshandWebpackOssPlugin.prototype.client = this.client = new OSS({
 		region: conf.region,
 		accessKeyId: conf.accessKeyId,
@@ -188,7 +197,6 @@ function ChunshandWebpackOssPlugin(options) {
 }
 
 ChunshandWebpackOssPlugin.prototype.apply = function (compiler) {
-	let that = this;
 	compiler.hooks.emit.tapAsync(PluginName, function (compilation, callback) {
 		// publicPath
 		let publicPath = url.parse(compiler.options.output.publicPath);
@@ -197,8 +205,8 @@ ChunshandWebpackOssPlugin.prototype.apply = function (compiler) {
 			return callback(new Error('Webpack配置文件中: "output.publicPath"必须设置为域名，设置为：远端域名 具体可看阿里云oss后台设置'));
 		}
 		// 文件列表
-		let files = _.filter(_.keys(compilation.assets), that.options.filter);
-
+		let files = _.filter(_.keys(compilation.assets), ChunshandWebpackOssPlugin.newOptions.filter);
+		log("[FILES TOTAL]", files.length)
 		if (files.length === 0) {
 			// 没有资源文件需要上传
 			return callback();
@@ -212,28 +220,28 @@ ChunshandWebpackOssPlugin.prototype.apply = function (compiler) {
 			let target = url.resolve(url.format(publicPath), file);
 			let key = url.parse(target).pathname;
 			let source = compilation.assets[file].source();
-			let body = Buffer.isBuffer(source) ? source : new Buffer(source);
-			return that.client.put(key, body, {
+			let body = Buffer.isBuffer(source) ? source : Buffer.from(source);
+			return ChunshandWebpackOssPlugin.prototype.client.put(key, body, {
 				timeout: 30 * 1000
 			}).then(function () {
-				log('[SUCCESS]', key);
+				log('[UPLOAD SUCCESS]', key);
 				let next = files.shift();
 				if (next) {
-					return upload(next, that.options.retry);
+					return upload(next, times);
 				}
 			}, function (e) {
 				if (times === 0) {
-					throw new Error('[ERROR]: ', e);
+					throw new Error('[UPLOAD ERROR]: ', e);
 				}
 				else {
-					log('[retry]：', times, key);
+					log('[retry UPLOAD]：', times, key);
 					return upload(file, --times);
 				}
 			});
 		}
 		function update_run() {
 			// 开始上传
-			upload(files.shift(), that.options.retry).then(function () {
+			upload(files.shift(), ChunshandWebpackOssPlugin.newOptions.retry).then(function () {
 				log("FINISHED", "All Completed");
 				callback();
 			}).catch(function (e) {
@@ -242,9 +250,12 @@ ChunshandWebpackOssPlugin.prototype.apply = function (compiler) {
 				return callback(e);
 			});
 		}
-		if (that.newOpstion.version && that.newOpstion.versionCode) {
+		if (ChunshandWebpackOssPlugin.newOptions.version && ChunshandWebpackOssPlugin.newOptions.versionCode) {
 			// 检测以往脚本
-			ChunshandWebpackOssPlugin.getVjson(function () {
+			ChunshandWebpackOssPlugin.getVjson(function (e) {
+				if (!e) {
+					return callback(new Error('线上存在相同版本 请修改版本号 参数[versionCode]'));
+				}
 				update_run();
 			})
 		} else {
