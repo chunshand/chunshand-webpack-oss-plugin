@@ -1,0 +1,26 @@
+{
+  "name": "chunshand-webpack-oss-plugin",
+  "version": "1.0.0",
+  "description": ">上传 webpack 打包编译后的文件到阿里云 OSS",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chunshand/chunshand-webpack-oss-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chunshand/chunshand-webpack-oss-plugin/issues"
+  },
+  "homepage": "https://github.com/chunshand/chunshand-webpack-oss-plugin#readme",
+  "dependencies": {
+    "ali-oss": "^6.12.0"
+  }
+}
