@@ -77,7 +77,7 @@ plugin:[new ChunshandWebpackOssPlugin(ossUploadConfig)]
 
 ## 多版本控制
 
-```
+```javascript
 {
 	// 是否版本控制 
 	version: true,
@@ -91,7 +91,9 @@ plugin:[new ChunshandWebpackOssPlugin(ossUploadConfig)]
 
  - 每一次需要打包到线上都要更改 `versionCode`
  - 自动会 `path` 目录下创建 `oss.v.json` 记录版本 尽量不要动
- - 目录结构
+
+线上目录目录结构
+
 ```
 -----------
 path/
